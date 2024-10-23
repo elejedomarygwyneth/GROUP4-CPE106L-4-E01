@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-from pal.event_pal import create_event
+from PAL.event_pal import create_event
 
 def open_dashboard():
     dashboard = tk.Tk()
