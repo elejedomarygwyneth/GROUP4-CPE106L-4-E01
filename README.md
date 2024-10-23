@@ -12,7 +12,6 @@ How to Run the Project:
    - pip install flet
 4. Run project
    - python main.py
-  This will start the login UI.
 5. Login credentials
    - Username: admin
    - Password: password
