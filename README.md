@@ -6,16 +6,16 @@ EventSynch is a simple event management system that allows users to log in, add 
 How to Run the Project:
 1. Download the files
 2. Navigate to the project directory
-cd Downloads
-cd GROUP4-CPE106L-4-E01-main
+   - cd Downloads
+   - cd GROUP4-CPE106L-4-E01-main
 3. Install the necessary dependencies (like flet)
-   pip install flet
+   - pip install flet
 4. Run project
-   python main.py
+   - python main.py
   This will start the login UI.
 5. Login credentials
-   Username: admin
-   Password: password
+   - Username: admin
+   - Password: password
    - After logging in, the dashboard UI will open where you can add and manage events.
 
 How to Run Unit Test:
