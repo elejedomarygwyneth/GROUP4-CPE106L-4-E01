@@ -1,5 +1,5 @@
 import unittest
-from bl.login_bl import validate_login
+from BL.login_bl import validate_login
 
 class TestLogin(unittest.TestCase):
     def test_valid_login(self):
