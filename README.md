@@ -17,10 +17,4 @@ How to Run the Project:
    - Password: password
    - After logging in, the dashboard UI will open where you can add and manage events.
 
-How to Run Unit Test:
-1. Navigate to the UnitTests directory
-   - cd UnitTests
-2. Run the unit tests
-   - python -m unittest test_login.py
-
 
