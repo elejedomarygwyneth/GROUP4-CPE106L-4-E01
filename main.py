@@ -1,5 +1,5 @@
 from UI import login_ui
-from data import db_connection
+from DATABASE import db_connection
 
 if __name__ == "__main__":
     db_connection.create_tables()  # Initialize the database
