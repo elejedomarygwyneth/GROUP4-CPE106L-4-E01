@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
-from pal.login_pal import login_user
-from ui.dashboard_ui import open_dashboard
+from PAL.login_pal import login_user
+from UI.dashboard_ui import open_dashboard
 
 def login():
     username = entry_username.get()
