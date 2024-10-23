@@ -14,3 +14,4 @@ def setup_login_routes(app):
             else:
                 flash('Invalid username or password.', 'danger')
         return render_template('login.html')
+
