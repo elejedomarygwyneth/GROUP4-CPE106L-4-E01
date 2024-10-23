@@ -1,5 +1,10 @@
+import sys
+import os
 import unittest
-from BL.login_bl import validate_login
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from BL.login_bl import validate_login 
 
 class TestLogin(unittest.TestCase):
     def test_valid_login(self):
@@ -10,3 +15,4 @@ class TestLogin(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
