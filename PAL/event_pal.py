@@ -1,4 +1,4 @@
-from bl.event_management import add_event, edit_event
+from BL.event_management import add_event, edit_event
 
 def create_event(event_name, event_date):
     return add_event(event_name, event_date)
