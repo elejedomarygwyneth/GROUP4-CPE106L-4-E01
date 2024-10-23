@@ -19,8 +19,8 @@ How to Run the Project:
 
 How to Run Unit Test:
 1. Navigate to the UnitTests directory
-   cd UnitTests
+   - cd UnitTests
 2. Run the unit tests
-   python -m unittest test_login.py
+   - python -m unittest test_login.py
 
 
