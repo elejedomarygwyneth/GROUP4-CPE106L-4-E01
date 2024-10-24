@@ -13,14 +13,11 @@ def open_dashboard(username):
     style.configure("TButton", font=("Arial", 12), padding=5)
     style.configure("TLabel", font=("Arial", 12), background="#e8f4f8")
 
-    # Title
     ttk.Label(dashboard, text=f"Welcome to EventSynch, {username}!", font=("Arial", 18, "bold")).pack(pady=10)
 
-    # Tabs for Event Management, Budgeting, and Reports
     tabs = ttk.Notebook(dashboard)
     tabs.pack(expand=1, fill="both")
 
-    # Event Management Tab
     event_tab = ttk.Frame(tabs)
     tabs.add(event_tab, text="Event Management")
 
@@ -60,7 +57,14 @@ def open_dashboard(username):
         event_description.pack(pady=5)
 
         def save_event():
-            add_event(event_name.get(), event_date.get(), event_location.get(), event_description.get(), username)
+            """Save a new event."""
+            add_event(
+                event_name.get(), 
+                event_date.get(), 
+                event_location.get(), 
+                event_description.get(), 
+                username
+            )
             messagebox.showinfo("Success", "Event Added")
             add_window.destroy()
             refresh_events()
@@ -70,19 +74,5 @@ def open_dashboard(username):
     ttk.Button(event_tab, text="Add Event", command=open_add_event).pack(pady=10)
     refresh_events()
 
-    # Budgeting Tab
-    budget_tab = ttk.Frame(tabs)
-    tabs.add(budget_tab, text="Budgeting")
-
-    ttk.Label(budget_tab, text="Set budgets and track expenses for your events.", font=("Arial", 14)).pack(pady=20)
-
-    # Reports Tab
-    reports_tab = ttk.Frame(tabs)
-    tabs.add(reports_tab, text="Reports")
-
-    ttk.Label(reports_tab, text="View event reports and progress here.", font=("Arial", 14)).pack(pady=20)
-
-    # Logout Button
     ttk.Button(dashboard, text="Logout", command=dashboard.destroy).pack(pady=10)
-
     dashboard.mainloop()
