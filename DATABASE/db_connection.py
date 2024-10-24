@@ -2,6 +2,7 @@ from flask import Flask
 from DAL.dal import db
 
 def init_app():
+    """Initialize the Flask application and database."""
     app = Flask(__name__)
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///events.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
