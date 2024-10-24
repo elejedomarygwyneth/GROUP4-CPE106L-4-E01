@@ -1,8 +1,7 @@
-from UI import login_ui
-from DATABASE import db_connection
+import tkinter as tk
+from UI.login_ui import open_login
 
 if __name__ == "__main__":
-    db_connection.create_tables()  # Initialize the database
-    # Start the login UI
-    login_ui.root.mainloop()
+    open_login()
+
 
