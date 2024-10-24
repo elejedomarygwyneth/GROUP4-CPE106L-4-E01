@@ -1,39 +1,42 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from PAL.login_pal import login_user
 from UI.dashboard_ui import open_dashboard
+from PAL.login_pal import login_user
 
-def login():
-    """Handles user login."""
-    username = entry_username.get()
-    password = entry_password.get()
-    
-    if login_user(username, password):
-        messagebox.showinfo("Login Success", "Welcome to the EventSynch Dashboard")
-        root.destroy()  
-        open_dashboard()  
-    else:
-        messagebox.showerror("Login Failed", "Invalid credentials. Please try again.")
+def open_login():
+    """Launch the login window."""
+    root = tk.Tk()
+    root.title("EventSynch - Login")
+    root.geometry("400x300")
+    root.configure(bg="#e8f4f8")
 
-root = tk.Tk()
-root.title("EventSynch Login")
-root.geometry("400x300")
-root.configure(bg="#d4ebf2")
+    style = ttk.Style()
+    style.configure("TButton", font=("Arial", 12), padding=5)
+    style.configure("TLabel", font=("Arial", 12), background="#e8f4f8")
 
-style = ttk.Style()
-style.configure("TButton", font=("Arial", 14), padding=10)
-style.configure("TLabel", background="#d4ebf2", font=("Arial", 12))
+    # Title
+    ttk.Label(root, text="Welcome to EventSynch", font=("Arial", 18, "bold")).pack(pady=10)
 
-ttk.Label(root, text="EventSynch Login", font=("Arial", 18, "bold")).pack(pady=20)
+    # Username and Password Fields
+    ttk.Label(root, text="Username").pack(pady=5)
+    entry_username = ttk.Entry(root, width=30)
+    entry_username.pack(pady=5)
 
-ttk.Label(root, text="Username").pack(pady=5)
-entry_username = ttk.Entry(root, width=30, font=("Arial", 12))
-entry_username.pack(pady=5)
+    ttk.Label(root, text="Password").pack(pady=5)
+    entry_password = ttk.Entry(root, width=30, show="*")
+    entry_password.pack(pady=5)
 
-ttk.Label(root, text="Password").pack(pady=5)
-entry_password = ttk.Entry(root, width=30, show="*", font=("Arial", 12))
-entry_password.pack(pady=5)
+    # Login Button
+    def login():
+        username = entry_username.get()
+        password = entry_password.get()
+        if login_user(username, password):
+            messagebox.showinfo("Success", "Login Successful")
+            root.destroy()
+            open_dashboard(username)
+        else:
+            messagebox.showerror("Error", "Invalid credentials")
 
-ttk.Button(root, text="Login", command=login, style="TButton").pack(pady=20)
+    ttk.Button(root, text="Login", command=login).pack(pady=20)
 
-root.mainloop()
+    root.mainloop()
