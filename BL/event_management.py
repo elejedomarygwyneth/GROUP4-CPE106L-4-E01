@@ -20,3 +20,4 @@ def edit_event(event_id, new_name, new_date, new_location, new_description):
 def get_all_events(user_id):
     return Event.query.filter_by(user_id=user_id).all()
 
+
