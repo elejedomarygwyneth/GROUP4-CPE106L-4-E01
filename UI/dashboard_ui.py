@@ -6,7 +6,7 @@ def open_dashboard(username):
     """Launch the event management dashboard."""
     dashboard = tk.Tk()
     dashboard.title(f"EventSynch Dashboard - Welcome {username}")
-    dashboard.geometry("600x500")
+    dashboard.geometry("800x600")
     dashboard.configure(bg="#e8f4f8")
 
     style = ttk.Style()
@@ -16,23 +16,29 @@ def open_dashboard(username):
     # Title
     ttk.Label(dashboard, text=f"Welcome to EventSynch, {username}!", font=("Arial", 18, "bold")).pack(pady=10)
 
-    # Event List Section
-    events_frame = ttk.Frame(dashboard)
-    events_frame.pack(pady=10)
+    # Tabs for Event Management, Budgeting, and Reports
+    tabs = ttk.Notebook(dashboard)
+    tabs.pack(expand=1, fill="both")
+
+    # Event Management Tab
+    event_tab = ttk.Frame(tabs)
+    tabs.add(event_tab, text="Event Management")
+
+    event_list_frame = ttk.Frame(event_tab)
+    event_list_frame.pack(pady=10)
 
     def refresh_events():
-        for widget in events_frame.winfo_children():
+        """Refresh the event list."""
+        for widget in event_list_frame.winfo_children():
             widget.destroy()
         events = get_all_events(username)
         for event in events:
             event_info = f"{event['name']} | {event['date']} | {event['location']} | {event['description']}"
-            ttk.Label(events_frame, text=event_info).pack()
-            ttk.Button(events_frame, text="Delete", command=lambda e=event['id']: delete_event(e)).pack()
+            ttk.Label(event_list_frame, text=event_info).pack()
+            ttk.Button(event_list_frame, text="Delete", command=lambda e=event['id']: delete_event(e)).pack()
 
-    refresh_events()
-
-    # Add Event Button
     def open_add_event():
+        """Open a window to add a new event."""
         add_window = tk.Toplevel(dashboard)
         add_window.title("Add Event")
         add_window.geometry("400x300")
@@ -54,21 +60,29 @@ def open_dashboard(username):
         event_description.pack(pady=5)
 
         def save_event():
-            add_event(
-                event_name.get(),
-                event_date.get(),
-                event_location.get(),
-                event_description.get(),
-                username
-            )
+            add_event(event_name.get(), event_date.get(), event_location.get(), event_description.get(), username)
             messagebox.showinfo("Success", "Event Added")
             add_window.destroy()
             refresh_events()
 
         ttk.Button(add_window, text="Save", command=save_event).pack(pady=10)
 
-    ttk.Button(dashboard, text="Add Event", command=open_add_event).pack(pady=10)
+    ttk.Button(event_tab, text="Add Event", command=open_add_event).pack(pady=10)
+    refresh_events()
 
+    # Budgeting Tab
+    budget_tab = ttk.Frame(tabs)
+    tabs.add(budget_tab, text="Budgeting")
+
+    ttk.Label(budget_tab, text="Set budgets and track expenses for your events.", font=("Arial", 14)).pack(pady=20)
+
+    # Reports Tab
+    reports_tab = ttk.Frame(tabs)
+    tabs.add(reports_tab, text="Reports")
+
+    ttk.Label(reports_tab, text="View event reports and progress here.", font=("Arial", 14)).pack(pady=20)
+
+    # Logout Button
     ttk.Button(dashboard, text="Logout", command=dashboard.destroy).pack(pady=10)
 
     dashboard.mainloop()
