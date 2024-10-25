@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-import re  
+import re  # Import the re module for date validation
 from BL.event_management import add_event, delete_event, get_all_events, update_event
 
 def open_dashboard(username):
@@ -28,6 +28,7 @@ def open_dashboard(username):
         add_window.title("Add Event")
         add_window.geometry("400x300")
 
+        # Event details
         ttk.Label(add_window, text="Event Name").pack(pady=5)
         event_name = ttk.Entry(add_window)
         event_name.pack(pady=5)
@@ -62,6 +63,7 @@ def open_dashboard(username):
                 messagebox.showerror("Error", "Invalid date format. Please use MM-DD-YYYY.")
                 return
 
+            # Save the event without budget and expenses
             add_event(
                 event_name_val,
                 event_date_val,
@@ -73,19 +75,22 @@ def open_dashboard(username):
             messagebox.showinfo("Success", "Event Added")
             add_window.destroy()
 
-        ttk.Button(add_window, text="Save", command=save_event).pack(pady=10)
+        # Save and Cancel buttons
+        ttk.Button(add_window, text="Save", command=save_event).pack(side="left", padx=5, pady=10)
+        ttk.Button(add_window, text="Cancel", command=add_window.destroy).pack(side="right", padx=5, pady=10)
 
     ttk.Button(event_tab, text="Add Event", command=open_add_event).pack(pady=10)
 
     def open_event_list_window():
         """Open a new window for viewing all events and close the dashboard."""
-        dashboard.withdraw()
+        dashboard.withdraw()  # Hide the dashboard
 
         event_window = tk.Toplevel(dashboard)
         event_window.title("All Events")
         event_window.geometry("600x400")
-        event_window.configure(bg="#f0f0f0")  
+        event_window.configure(bg="#f0f0f0")  # Light gray background
 
+        # Add a canvas and scrollbar to the new event window
         canvas = tk.Canvas(event_window)
         scrollbar = ttk.Scrollbar(event_window, orient="vertical", command=canvas.yview)
         scrollable_frame = ttk.Frame(canvas)
@@ -102,51 +107,62 @@ def open_dashboard(username):
         scrollbar.pack(side="right", fill="y")
 
         def on_close():
-            event_window.destroy()
-            dashboard.deiconify()
+            event_window.destroy()  # Close event window
+            dashboard.deiconify()  # Show the dashboard again
 
         event_window.protocol("WM_DELETE_WINDOW", on_close)
 
-        refresh_event_list(scrollable_frame)
+        refresh_event_list(scrollable_frame, event_window)
 
-    def refresh_event_list(scrollable_frame):
+    def refresh_event_list(scrollable_frame, event_window):
         """Show all events and make them clickable to edit or delete."""
         for widget in scrollable_frame.winfo_children():
             widget.destroy()
 
         events = get_all_events(username)
         if not events:
-            ttk.Label(scrollable_frame, text="No events found.", font=("Arial", 14)).pack(pady=20)
+            # Center the "No events found" message and the Back button
+            ttk.Label(scrollable_frame, text="No events found.", font=("Arial", 14)).pack(pady=20, padx=20)
+            ttk.Button(scrollable_frame, text="Back", command=lambda: go_back(event_window)).pack(pady=20)
             return
 
         for event in events:
             event_frame = ttk.Frame(scrollable_frame, relief="groove", borderwidth=2, padding=10)
-            event_frame.pack(fill="x", pady=5, padx=10)
+            event_frame.pack(pady=10, padx=150)  # Center the event frame with horizontal padding
 
-            ttk.Label(event_frame, text=f"Event: {event['name']}", font=("Arial", 14, "bold")).pack(anchor='w')
-            ttk.Label(event_frame, text=f"Date: {event['date']}", font=("Arial", 12)).pack(anchor='w')
-            ttk.Label(event_frame, text=f"Location: {event['location']}", font=("Arial", 12)).pack(anchor='w')
-            ttk.Label(event_frame, text=f"Budget: ₱{event.get('budget', 0):.2f}", font=("Arial", 12)).pack(anchor='w')
+            ttk.Label(event_frame, text=f"Event: {event['name']}", font=("Arial", 14, "bold")).pack(anchor='center')
+            ttk.Label(event_frame, text=f"Date: {event['date']}", font=("Arial", 12)).pack(anchor='center')
+            ttk.Label(event_frame, text=f"Location: {event['location']}", font=("Arial", 12)).pack(anchor='center')
+            ttk.Label(event_frame, text=f"Budget: ₱{event.get('budget', 0):.2f}", font=("Arial", 12)).pack(anchor='center')
 
-            ttk.Button(event_frame, text="Edit", command=lambda e=event: edit_event_details(e, scrollable_frame)).pack(side="left", padx=5, pady=5)
+            # Edit button for editing event details (name, date, etc.)
+            ttk.Button(event_frame, text="Edit", command=lambda e=event: edit_event_details(e, scrollable_frame, event_window)).pack(side="left", padx=5, pady=5)
 
-            ttk.Button(event_frame, text="Delete", command=lambda e=event['id']: confirm_delete(e, scrollable_frame)).pack(side="right", padx=5, pady=5)
+            # Delete button with confirmation prompt
+            ttk.Button(event_frame, text="Delete", command=lambda e=event['id']: confirm_delete(e, scrollable_frame, event_window)).pack(side="right", padx=5, pady=5)
 
-        ttk.Button(scrollable_frame, text="Back", command=lambda: scrollable_frame.master.destroy()).pack(pady=10)
+        # Center the back button when events are available
+        ttk.Button(scrollable_frame, text="Back", command=lambda: go_back(event_window)).pack(pady=20)
 
-    def confirm_delete(event_id, scrollable_frame):
+    def go_back(event_window):
+        """Close the event window and re-open the dashboard."""
+        event_window.destroy()
+        dashboard.deiconify()  # Re-open the dashboard when back is pressed
+
+    def confirm_delete(event_id, scrollable_frame, event_window):
         """Ask for confirmation before deleting an event."""
         confirm = messagebox.askyesno("Delete Confirmation", "Are you sure you want to delete this event?")
         if confirm:
             delete_event(event_id)
-            refresh_event_list(scrollable_frame)
+            refresh_event_list(scrollable_frame, event_window)
 
-    def edit_event_details(event, scrollable_frame):
+    def edit_event_details(event, scrollable_frame, event_window):
         """Open a window to edit event details (name, date, location, description)."""
         edit_window = tk.Toplevel(dashboard)
         edit_window.title(f"Edit Event: {event['name']}")
         edit_window.geometry("400x400")
 
+        # Editable fields for event details
         ttk.Label(edit_window, text="Event Name").pack(pady=5)
         event_name = ttk.Entry(edit_window)
         event_name.pack(pady=5)
@@ -185,15 +201,19 @@ def open_dashboard(username):
 
             confirm = messagebox.askyesno("Save Confirmation", "Are you sure you want to save the changes?")
             if confirm:
-                
+                # Assuming we use update_event to save details like name, date, location, and description
                 update_event(event['id'], updated_name, updated_date, updated_location, updated_description)
                 messagebox.showinfo("Success", "Event details updated")
-                refresh_event_list(scrollable_frame)
+                refresh_event_list(scrollable_frame, event_window)
                 edit_window.destroy()
 
-        ttk.Button(edit_window, text="Save", command=save_event_details).pack(pady=10)
+        # Save and Cancel buttons for editing event
+        ttk.Button(edit_window, text="Save", command=save_event_details).pack(side="left", padx=5, pady=10)
+        ttk.Button(edit_window, text="Cancel", command=edit_window.destroy).pack(side="right", padx=5, pady=10)
 
     ttk.Button(event_tab, text="View All Events", command=open_event_list_window).pack(pady=10)
+
+    # Add the logout button to the dashboard, placed under the tabs
     ttk.Button(dashboard, text="Logout", command=dashboard.destroy).pack(pady=10)
 
     dashboard.mainloop()
