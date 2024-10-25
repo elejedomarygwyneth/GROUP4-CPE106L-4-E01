@@ -75,9 +75,13 @@ def open_dashboard(username):
             messagebox.showinfo("Success", "Event Added")
             add_window.destroy()
 
+        # Button frame to group Save and Cancel buttons
+        button_frame = ttk.Frame(add_window)
+        button_frame.pack(pady=10)
+
         # Save and Cancel buttons
-        ttk.Button(add_window, text="Save", command=save_event).pack(side="left", padx=5, pady=10)
-        ttk.Button(add_window, text="Cancel", command=add_window.destroy).pack(side="right", padx=5, pady=10)
+        ttk.Button(button_frame, text="Save", command=save_event).pack(side="left", padx=5)
+        ttk.Button(button_frame, text="Cancel", command=add_window.destroy).pack(side="left", padx=5)
 
     ttk.Button(event_tab, text="Add Event", command=open_add_event).pack(pady=10)
 
@@ -207,9 +211,13 @@ def open_dashboard(username):
                 refresh_event_list(scrollable_frame, event_window)
                 edit_window.destroy()
 
+        # Button frame to group Save and Cancel buttons for editing
+        button_frame = ttk.Frame(edit_window)
+        button_frame.pack(pady=10)
+
         # Save and Cancel buttons for editing event
-        ttk.Button(edit_window, text="Save", command=save_event_details).pack(side="left", padx=5, pady=10)
-        ttk.Button(edit_window, text="Cancel", command=edit_window.destroy).pack(side="right", padx=5, pady=10)
+        ttk.Button(button_frame, text="Save", command=save_event_details).pack(side="left", padx=5)
+        ttk.Button(button_frame, text="Cancel", command=edit_window.destroy).pack(side="left", padx=5)
 
     ttk.Button(event_tab, text="View All Events", command=open_event_list_window).pack(pady=10)
 
