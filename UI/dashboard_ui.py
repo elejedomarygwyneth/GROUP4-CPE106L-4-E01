@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+import re  
 from BL.event_management import add_event, delete_event, get_all_events
 
 event_window_open = None
@@ -33,7 +34,7 @@ def open_dashboard(username):
         event_name = ttk.Entry(add_window)
         event_name.pack(pady=5)
 
-        ttk.Label(add_window, text="Event Date").pack(pady=5)
+        ttk.Label(add_window, text="Event Date (MM-DD-YYYY)").pack(pady=5)
         event_date = ttk.Entry(add_window)
         event_date.pack(pady=5)
 
@@ -45,13 +46,23 @@ def open_dashboard(username):
         event_description = ttk.Entry(add_window)
         event_description.pack(pady=5)
 
+        def is_valid_date(date_str):
+            """Validate the date format (MM-DD-YYYY)."""
+            pattern = r'^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])-\d{4}$'
+            return re.match(pattern, date_str) is not None
+
         def save_event():
             """Save a new event."""
+            date_input = event_date.get()
+            if not is_valid_date(date_input):
+                messagebox.showerror("Error", "Invalid date format. Please use MM-DD-YYYY.")
+                return
+
             add_event(
-                event_name.get(), 
-                event_date.get(), 
-                event_location.get(), 
-                event_description.get(), 
+                event_name.get(),
+                date_input,
+                event_location.get(),
+                event_description.get(),
                 username
             )
             messagebox.showinfo("Success", "Event Added")
@@ -64,39 +75,39 @@ def open_dashboard(username):
     def open_event_list_window():
         global event_window_open  
         if event_window_open is None:  
-        
             dashboard.withdraw()
 
             event_window_open = tk.Toplevel(dashboard)
             event_window_open.title("All Events")
             event_window_open.geometry("600x400")
+            event_window_open.configure(bg="#f0f0f0")  
 
             def on_close():
                 global event_window_open
                 event_window_open.destroy()
                 event_window_open = None
-                
                 dashboard.deiconify()
 
             event_window_open.protocol("WM_DELETE_WINDOW", on_close)
 
-           
             def refresh_event_list():
                 for widget in event_window_open.winfo_children():
                     widget.destroy()
 
                 events = get_all_events(username)
                 if not events:
-                    ttk.Label(event_window_open, text="No events found.", justify='center').pack(pady=20)
+                    ttk.Label(event_window_open, text="No events found.", justify='center', font=("Arial", 14)).pack(pady=20)
                     ttk.Button(event_window_open, text="Back", command=on_close).pack(pady=10)
                     return
 
                 for event in events:
-                    event_frame = ttk.Frame(event_window_open, relief="groove", borderwidth=2)
+                    event_frame = ttk.Frame(event_window_open, relief="groove", borderwidth=2, padding=10)
                     event_frame.pack(fill="x", pady=5, padx=10)
 
-                    event_info = f"Event: {event['name']}\nDate: {event['date']}\nLocation: {event['location']}\nDescription: {event['description']}"
-                    ttk.Label(event_frame, text=event_info, justify='left').pack(pady=5)
+                    ttk.Label(event_frame, text=f"Event: {event['name']}", font=("Arial", 14, "bold")).pack(anchor='w')
+                    ttk.Label(event_frame, text=f"Date: {event['date']}", font=("Arial", 12)).pack(anchor='w')
+                    ttk.Label(event_frame, text=f"Location: {event['location']}", font=("Arial", 12)).pack(anchor='w')
+                    ttk.Label(event_frame, text=f"Description: {event['description']}", font=("Arial", 12)).pack(anchor='w')
 
                     def delete_event_action(event_id=event['id']):
                         """Delete the event with confirmation."""
@@ -109,7 +120,7 @@ def open_dashboard(username):
 
                 ttk.Button(event_window_open, text="Back", command=on_close).pack(pady=10)
 
-            refresh_event_list() 
+            refresh_event_list()
 
     ttk.Button(event_tab, text="View All Events", command=open_event_list_window).pack(pady=10)
 
