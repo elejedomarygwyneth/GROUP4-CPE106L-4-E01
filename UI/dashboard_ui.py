@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from BL.event_management import add_event, delete_event, get_all_events
 
+event_window_open = None
+
 def open_dashboard(username):
     """Launch the event management dashboard."""
     dashboard = tk.Tk()
@@ -20,19 +22,6 @@ def open_dashboard(username):
 
     event_tab = ttk.Frame(tabs)
     tabs.add(event_tab, text="Event Management")
-
-    event_list_frame = ttk.Frame(event_tab)
-    event_list_frame.pack(pady=10)
-
-    def refresh_events():
-        """Refresh the event list."""
-        for widget in event_list_frame.winfo_children():
-            widget.destroy()
-        events = get_all_events(username)
-        for event in events:
-            event_info = f"{event['name']} | {event['date']} | {event['location']} | {event['description']}"
-            ttk.Label(event_list_frame, text=event_info).pack()
-            ttk.Button(event_list_frame, text="Delete", command=lambda e=event['id']: delete_event(e)).pack()
 
     def open_add_event():
         """Open a window to add a new event."""
@@ -67,12 +56,62 @@ def open_dashboard(username):
             )
             messagebox.showinfo("Success", "Event Added")
             add_window.destroy()
-            refresh_events()
 
         ttk.Button(add_window, text="Save", command=save_event).pack(pady=10)
 
     ttk.Button(event_tab, text="Add Event", command=open_add_event).pack(pady=10)
-    refresh_events()
+
+    def open_event_list_window():
+        global event_window_open  
+        if event_window_open is None:  
+        
+            dashboard.withdraw()
+
+            event_window_open = tk.Toplevel(dashboard)
+            event_window_open.title("All Events")
+            event_window_open.geometry("600x400")
+
+            def on_close():
+                global event_window_open
+                event_window_open.destroy()
+                event_window_open = None
+                
+                dashboard.deiconify()
+
+            event_window_open.protocol("WM_DELETE_WINDOW", on_close)
+
+           
+            def refresh_event_list():
+                for widget in event_window_open.winfo_children():
+                    widget.destroy()
+
+                events = get_all_events(username)
+                if not events:
+                    ttk.Label(event_window_open, text="No events found.", justify='center').pack(pady=20)
+                    ttk.Button(event_window_open, text="Back", command=on_close).pack(pady=10)
+                    return
+
+                for event in events:
+                    event_frame = ttk.Frame(event_window_open, relief="groove", borderwidth=2)
+                    event_frame.pack(fill="x", pady=5, padx=10)
+
+                    event_info = f"Event: {event['name']}\nDate: {event['date']}\nLocation: {event['location']}\nDescription: {event['description']}"
+                    ttk.Label(event_frame, text=event_info, justify='left').pack(pady=5)
+
+                    def delete_event_action(event_id=event['id']):
+                        """Delete the event with confirmation."""
+                        response = messagebox.askyesno("Delete Confirmation", "Are you sure you want to delete this event?")
+                        if response:
+                            delete_event(event_id)
+                            refresh_event_list()  
+
+                    ttk.Button(event_frame, text="Delete", command=delete_event_action).pack(pady=5)
+
+                ttk.Button(event_window_open, text="Back", command=on_close).pack(pady=10)
+
+            refresh_event_list() 
+
+    ttk.Button(event_tab, text="View All Events", command=open_event_list_window).pack(pady=10)
 
     ttk.Button(dashboard, text="Logout", command=dashboard.destroy).pack(pady=10)
     dashboard.mainloop()
