@@ -38,3 +38,4 @@ def get_all_events(user_id):
             }
             for e in events
         ]
+        
