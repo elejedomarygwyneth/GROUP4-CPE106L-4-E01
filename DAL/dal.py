@@ -10,8 +10,4 @@ class Event(db.Model):
     location = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     user_id = db.Column(db.String(150), nullable=False)
-
-
-
-
-
+    
