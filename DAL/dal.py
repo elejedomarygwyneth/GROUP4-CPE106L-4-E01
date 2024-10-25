@@ -11,3 +11,5 @@ class Event(db.Model):
     description = db.Column(db.Text)
     user_id = db.Column(db.String(150), nullable=False)
     
+
+    
