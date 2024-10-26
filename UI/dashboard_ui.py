@@ -3,7 +3,7 @@ from tkinter import ttk, messagebox
 from BL.event_management import add_event, delete_event, get_all_events, update_event
 
 event_window_open = None
-window_size = "800x600"  # Set uniform window size for dashboard and event list windows
+window_size = "1000x600"  # Set larger window size for dashboard and event list windows
 
 def open_dashboard(username):
     """Launch the event management dashboard."""
@@ -31,19 +31,19 @@ def open_dashboard(username):
         add_window.geometry("400x350")
         add_window.resizable(False, False)
 
-        ttk.Label(add_window, text="Event Name").pack(pady=5)
+        ttk.Label(add_window, text="Event Name", background="SystemButtonFace").pack(pady=5)
         event_name = ttk.Entry(add_window)
         event_name.pack(pady=5)
 
-        ttk.Label(add_window, text="Event Date (MM-DD-YYYY)").pack(pady=5)
+        ttk.Label(add_window, text="Event Date (MM-DD-YYYY)", background="SystemButtonFace").pack(pady=5)
         event_date = ttk.Entry(add_window)
         event_date.pack(pady=5)
 
-        ttk.Label(add_window, text="Location").pack(pady=5)
+        ttk.Label(add_window, text="Location", background="SystemButtonFace").pack(pady=5)
         event_location = ttk.Entry(add_window)
         event_location.pack(pady=5)
 
-        ttk.Label(add_window, text="Description").pack(pady=5)
+        ttk.Label(add_window, text="Description", background="SystemButtonFace").pack(pady=5)
         event_description = ttk.Entry(add_window)
         event_description.pack(pady=5)
 
@@ -88,7 +88,7 @@ def open_dashboard(username):
             event_window_open = tk.Toplevel(dashboard)
             event_window_open.title("All Events")
             event_window_open.geometry(window_size)
-            event_window_open.resizable(False, False)
+            event_window_open.resizable(True, True)
 
             def on_close():
                 global event_window_open
@@ -98,9 +98,13 @@ def open_dashboard(username):
 
             event_window_open.protocol("WM_DELETE_WINDOW", on_close)
 
+            # Main frame to hold the scrollable frame and the Back button
+            main_frame = ttk.Frame(event_window_open)
+            main_frame.pack(fill="both", expand=True)
+
             # Add a scrollable canvas
-            canvas = tk.Canvas(event_window_open)
-            scrollbar = ttk.Scrollbar(event_window_open, orient="vertical", command=canvas.yview)
+            canvas = tk.Canvas(main_frame)
+            scrollbar = ttk.Scrollbar(main_frame, orient="vertical", command=canvas.yview)
             scrollable_frame = ttk.Frame(canvas)
 
             scrollable_frame.bind(
@@ -108,7 +112,8 @@ def open_dashboard(username):
                 lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
             )
 
-            canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+            # Center-align and expand the scrollable frame
+            canvas.create_window((0, 0), window=scrollable_frame, anchor="n", width=900)
             canvas.configure(yscrollcommand=scrollbar.set)
 
             canvas.pack(side="left", fill="both", expand=True)
@@ -121,99 +126,112 @@ def open_dashboard(username):
                 events = get_all_events(username)
                 if not events:
                     ttk.Label(scrollable_frame, text="No events found.", justify='center').pack(pady=20)
-                    ttk.Button(scrollable_frame, text="Back", command=on_close).pack(pady=10)
-                    return
+                else:
+                    for event in events:
+                        # Center the event frame and its content
+                        event_frame = ttk.Frame(scrollable_frame, relief="groove", borderwidth=2)
+                        event_frame.pack(pady=10, padx=100, ipadx=10, fill="x")
 
-                for event in events:
-                    event_frame = ttk.Frame(scrollable_frame, relief="groove", borderwidth=2)
-                    event_frame.pack(fill="x", pady=10, padx=20)
+                        # Bold the event name and keep the rest regular
+                        event_name_label = tk.Label(
+                            event_frame,
+                            text=f"Event: {event['name']}",
+                            font=("Arial", 12, "bold"),
+                            justify='center',
+                            bg="SystemButtonFace"
+                        )
+                        event_name_label.pack(pady=2)
 
-                    event_info = (
-                        f"Event: {event['name']}\n"
-                        f"Date: {event['date']}\n"
-                        f"Location: {event['location']}\n"
-                        f"Description: {event['description']}"
-                    )
-                    ttk.Label(event_frame, text=event_info, justify='center').pack(pady=5)
+                        # Display event details in regular font
+                        event_details = tk.Label(
+                            event_frame,
+                            text=f"Date: {event['date']}\nLocation: {event['location']}\nDescription: {event['description']}",
+                            font=("Arial", 12),
+                            justify='center',
+                            bg="SystemButtonFace"
+                        )
+                        event_details.pack(pady=2)
 
-                    # Function to delete event
-                    def delete_event_action(event_id=event['id']):
-                        response = messagebox.askyesno("Delete Confirmation", "Are you sure you want to delete this event?")
-                        if response:
-                            delete_event(event_id)
-                            refresh_event_list()
+                        # Frame for the Delete and Edit buttons, centered
+                        button_frame = ttk.Frame(event_frame)
+                        button_frame.pack(pady=5)
+                        ttk.Button(button_frame, text="Delete", command=lambda e_id=event['id']: delete_event_action(e_id)).pack(side="left", padx=5)
+                        ttk.Button(button_frame, text="Edit", command=lambda e_data=event: edit_event(e_data)).pack(side="left", padx=5)
 
-                    # Function to edit event
-                    def edit_event(event_data=event):
-                        edit_window = tk.Toplevel(event_window_open)
-                        edit_window.title("Edit Event")
-                        edit_window.geometry("400x350")
-                        edit_window.resizable(False, False)
+            # Centered Back button created only once
+            back_button_frame = ttk.Frame(main_frame)
+            back_button_frame.pack(pady=20, side="bottom")
+            ttk.Button(back_button_frame, text="Back", command=on_close).pack(pady=10, padx=20)
 
-                        # Populate fields with current event data
-                        ttk.Label(edit_window, text="Event Name").pack(pady=5)
-                        event_name = ttk.Entry(edit_window)
-                        event_name.insert(0, event_data['name'])
-                        event_name.pack(pady=5)
+            def delete_event_action(event_id):
+                """Delete event action with confirmation."""
+                if messagebox.askyesno("Delete Confirmation", "Are you sure you want to delete this event?"):
+                    delete_event(event_id)
+                    refresh_event_list()  # Refresh list after deletion
 
-                        ttk.Label(edit_window, text="Event Date (MM-DD-YYYY)").pack(pady=5)
-                        event_date = ttk.Entry(edit_window)
-                        event_date.insert(0, event_data['date'])
-                        event_date.pack(pady=5)
+            def edit_event(event_data):
+                """Open the Edit Event window."""
+                edit_window = tk.Toplevel(event_window_open)
+                edit_window.title("Edit Event")
+                edit_window.geometry("400x350")
+                edit_window.resizable(False, False)
 
-                        ttk.Label(edit_window, text="Location").pack(pady=5)
-                        event_location = ttk.Entry(edit_window)
-                        event_location.insert(0, event_data['location'])
-                        event_location.pack(pady=5)
+                # Event fields with current data
+                ttk.Label(edit_window, text="Event Name", background="SystemButtonFace").pack(pady=5)
+                event_name = ttk.Entry(edit_window)
+                event_name.insert(0, event_data['name'])
+                event_name.pack(pady=5)
 
-                        ttk.Label(edit_window, text="Description").pack(pady=5)
-                        event_description = ttk.Entry(edit_window)
-                        event_description.insert(0, event_data['description'])
-                        event_description.pack(pady=5)
+                ttk.Label(edit_window, text="Event Date (MM-DD-YYYY)", background="SystemButtonFace").pack(pady=5)
+                event_date = ttk.Entry(edit_window)
+                event_date.insert(0, event_data['date'])
+                event_date.pack(pady=5)
 
-                        def save_edited_event():
-                            updated_event = {
-                                'id': event_data['id'],
-                                'name': event_name.get(),
-                                'date': event_date.get(),
-                                'location': event_location.get(),
-                                'description': event_description.get()
-                            }
-                            if update_event(updated_event):
-                                messagebox.showinfo("Success", "Event updated successfully")
-                                edit_window.destroy()
-                                refresh_event_list()
-                            else:
-                                messagebox.showerror("Error", "Failed to update event")
+                ttk.Label(edit_window, text="Location", background="SystemButtonFace").pack(pady=5)
+                event_location = ttk.Entry(edit_window)
+                event_location.insert(0, event_data['location'])
+                event_location.pack(pady=5)
 
-                        def cancel_edit():
-                            if (event_name.get() != event_data['name'] or
-                                    event_date.get() != event_data['date'] or
-                                    event_location.get() != event_data['location'] or
-                                    event_description.get() != event_data['description']):
-                                confirm = messagebox.askyesno(
-                                    "Cancel Confirmation",
-                                    "You have unsaved changes. Are you sure you want to cancel? Your changes will not be saved."
-                                )
-                                if not confirm:
-                                    return
-                            edit_window.destroy()
+                ttk.Label(edit_window, text="Description", background="SystemButtonFace").pack(pady=5)
+                event_description = ttk.Entry(edit_window)
+                event_description.insert(0, event_data['description'])
+                event_description.pack(pady=5)
 
-                        # Frame for Save and Cancel buttons
-                        button_frame = ttk.Frame(edit_window)
-                        button_frame.pack(pady=10)
+                def save_edited_event():
+                    """Save the edited event data."""
+                    updated_event = {
+                        'id': event_data['id'],
+                        'name': event_name.get(),
+                        'date': event_date.get(),
+                        'location': event_location.get(),
+                        'description': event_description.get()
+                    }
+                    if update_event(updated_event):
+                        messagebox.showinfo("Success", "Event updated successfully")
+                        edit_window.destroy()
+                        refresh_event_list()
+                    else:
+                        messagebox.showerror("Error", "Failed to update event")
 
-                        # Place Save and Cancel buttons side by side
-                        ttk.Button(button_frame, text="Save Changes", command=save_edited_event).pack(side="left", padx=5)
-                        ttk.Button(button_frame, text="Cancel", command=cancel_edit).pack(side="left", padx=5)
+                def cancel_edit():
+                    """Cancel the edit with confirmation if there are unsaved changes."""
+                    if (event_name.get() != event_data['name'] or
+                        event_date.get() != event_data['date'] or
+                        event_location.get() != event_data['location'] or
+                        event_description.get() != event_data['description']):
+                        confirm = messagebox.askyesno(
+                            "Cancel Confirmation",
+                            "You have unsaved changes. Are you sure you want to cancel? Your changes will not be saved."
+                        )
+                        if not confirm:
+                            return
+                    edit_window.destroy()
 
-                    # Center the Delete and Edit buttons within each event frame
-                    button_frame = ttk.Frame(event_frame)
-                    button_frame.pack(pady=5)
-                    ttk.Button(button_frame, text="Delete", command=delete_event_action).pack(side="left", padx=5)
-                    ttk.Button(button_frame, text="Edit", command=edit_event).pack(side="left", padx=5)
-
-                ttk.Button(scrollable_frame, text="Back", command=on_close).pack(pady=10)
+                # Frame for Save and Cancel buttons
+                button_frame = ttk.Frame(edit_window)
+                button_frame.pack(pady=10)
+                ttk.Button(button_frame, text="Save Changes", command=save_edited_event).pack(side="left", padx=5)
+                ttk.Button(button_frame, text="Cancel", command=cancel_edit).pack(side="left", padx=5)
 
             refresh_event_list()
 
