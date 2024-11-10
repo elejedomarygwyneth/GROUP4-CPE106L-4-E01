@@ -1,5 +1,5 @@
 # GROUP4-CPE106L-4-E01
-Group 4 Project (!!Not Yet Done, Other features not yet done!!)
+Group 4 Project 
 
 How to Run the Project:
 1. Download the files
