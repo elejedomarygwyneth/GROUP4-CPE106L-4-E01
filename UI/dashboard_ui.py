@@ -1,245 +1,636 @@
-import tkinter as tk
-from tkinter import ttk, messagebox
+import flet as ft
 from BL.event_management import add_event, delete_event, get_all_events, update_event
 
-event_window_open = None
-window_size = "1000x600"  # Set larger window size for dashboard and event list windows
 
-def open_dashboard(username):
-    """Launch the event management dashboard."""
-    dashboard = tk.Tk()
-    dashboard.title(f"EventSynch Dashboard - Welcome {username}")
-    dashboard.geometry(window_size)
-    dashboard.configure(bg="#e8f4f8")
 
-    style = ttk.Style()
-    style.configure("TButton", font=("Arial", 12), padding=5)
-    style.configure("TLabel", font=("Arial", 12), background="#e8f4f8")
 
-    ttk.Label(dashboard, text=f"Welcome to EventSynch, {username}!", font=("Arial", 18, "bold")).pack(pady=10)
+# Simple in-memory storage for demonstration purposes
+data_store = {
+    "budget_data": {}
+}
 
-    tabs = ttk.Notebook(dashboard)
-    tabs.pack(expand=1, fill="both")
 
-    event_tab = ttk.Frame(tabs)
-    tabs.add(event_tab, text="Event Management")
 
-    def open_add_event():
-        """Open a window to add a new event."""
-        add_window = tk.Toplevel(dashboard)
-        add_window.title("Add Event")
-        add_window.geometry("400x350")
-        add_window.resizable(False, False)
 
-        ttk.Label(add_window, text="Event Name", background="SystemButtonFace").pack(pady=5)
-        event_name = ttk.Entry(add_window)
-        event_name.pack(pady=5)
+def open_welcome_screen(page: ft.Page):
+    page.controls.clear()
+    page.title = "Welcome to EventSynch!"
 
-        ttk.Label(add_window, text="Event Date (MM-DD-YYYY)", background="SystemButtonFace").pack(pady=5)
-        event_date = ttk.Entry(add_window)
-        event_date.pack(pady=5)
 
-        ttk.Label(add_window, text="Location", background="SystemButtonFace").pack(pady=5)
-        event_location = ttk.Entry(add_window)
-        event_location.pack(pady=5)
 
-        ttk.Label(add_window, text="Description", background="SystemButtonFace").pack(pady=5)
-        event_description = ttk.Entry(add_window)
-        event_description.pack(pady=5)
 
-        def save_event():
-            """Save the new event."""
-            add_event(
-                event_name.get(), 
-                event_date.get(), 
-                event_location.get(), 
-                event_description.get(), 
-                username
-            )
-            messagebox.showinfo("Success", "Event Added")
-            add_window.destroy()
+    def open_login_form(page: ft.Page):
+        # Clear previous state to ensure consistency
+        page.controls.clear()
+        page.title = "Login to EventSynch"
 
-        def cancel_event():
-            """Prompt confirmation before closing the add event window without saving."""
-            if any(field.get() for field in [event_name, event_date, event_location, event_description]):
-                confirm = messagebox.askyesno(
-                    "Cancel Confirmation",
-                    "You have unsaved changes. Are you sure you want to cancel? Your data will not be saved."
+
+
+
+        # Reset layout for the login form
+        username_input = ft.TextField(label="Username")
+        password_input = ft.TextField(label="Password", password=True)
+
+
+
+
+        def login(e):
+            # Example login logic (replace with actual authentication if needed)
+            if username_input.value:
+                open_dashboard(page, username_input.value)
+            else:
+                page.dialog = ft.AlertDialog(
+                    title=ft.Text("Error"),
+                    content=ft.Text("Please enter a username."),
+                    actions=[ft.TextButton("OK", on_click=lambda e: close_dialog(page))]
                 )
-                if not confirm:
-                    return
-            add_window.destroy()
+                page.dialog.open = True
+                page.update()
 
-        # Create a frame to hold the Save and Cancel buttons side by side
-        button_frame = ttk.Frame(add_window)
-        button_frame.pack(pady=10)
 
-        # Place the Save and Cancel buttons side by side within the frame
-        ttk.Button(button_frame, text="Save", command=save_event).pack(side="left", padx=5)
-        ttk.Button(button_frame, text="Cancel", command=cancel_event).pack(side="left", padx=5)
 
-    ttk.Button(event_tab, text="Add Event", command=open_add_event).pack(pady=10)
 
-    def open_event_list_window():
-        global event_window_open  
-        if event_window_open is None:  
-            dashboard.withdraw()
+        login_content = ft.Column(
+            [
+                ft.Text("Login to EventSynch", size=24, weight="bold", text_align=ft.TextAlign.CENTER),
+                username_input,
+                password_input,
+                ft.FilledButton("Login", on_click=login)
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            spacing=20
+        )
+       
+        page.add(login_content)
+        page.dialog = None  # Clear any existing dialogs
+        page.update()
 
-            event_window_open = tk.Toplevel(dashboard)
-            event_window_open.title("All Events")
-            event_window_open.geometry(window_size)
-            event_window_open.resizable(True, True)
 
-            def on_close():
-                global event_window_open
-                event_window_open.destroy()
-                event_window_open = None
-                dashboard.deiconify()
 
-            event_window_open.protocol("WM_DELETE_WINDOW", on_close)
 
-            # Main frame to hold the scrollable frame and the Back button
-            main_frame = ttk.Frame(event_window_open)
-            main_frame.pack(fill="both", expand=True)
+    def close_dialog(page):
+        if page.dialog:
+            page.dialog.open = False
+            page.update()
 
-            # Add a scrollable canvas
-            canvas = tk.Canvas(main_frame)
-            scrollbar = ttk.Scrollbar(main_frame, orient="vertical", command=canvas.yview)
-            scrollable_frame = ttk.Frame(canvas)
 
-            scrollable_frame.bind(
-                "<Configure>",
-                lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+
+
+    def get_started(e):
+        open_login_form(page)
+
+
+
+
+    welcome_content = ft.Container(
+        content=ft.Column(
+            [
+                ft.Text("Welcome to EventSynch!", size=24, weight="bold", text_align=ft.TextAlign.CENTER),
+                ft.FilledButton("Get Started", on_click=get_started)
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            spacing=20
+        ),
+        alignment=ft.alignment.center,
+        padding=ft.padding.all(20),
+        expand=True
+    )
+    page.add(welcome_content)
+    page.update()
+
+
+
+
+def open_dashboard(page: ft.Page, username):
+    page.controls.clear()
+    page.title = f"EventSynch Dashboard - Welcome {username}"
+
+
+
+
+    def logout(e):
+        page.dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Logout Confirmation"),
+            content=ft.Text("Are you sure you want to logout?"),
+            actions=[
+                ft.TextButton("Yes", on_click=lambda e: perform_logout(page)),
+                ft.TextButton("No", on_click=lambda e: close_dialog(page))
+            ],
+            open=True
+        )
+        page.update()
+
+
+
+
+    def perform_logout(page):
+        page.dialog.open = False
+        page.update()
+        open_welcome_screen(page)  # Reset and go back to the welcome screen
+
+
+
+
+    def close_dialog(page):
+        if page.dialog:
+            page.dialog.open = False
+            page.update()
+
+
+
+
+    dashboard_content = ft.Column(
+        [
+            ft.Container(
+                content=ft.Column(
+                    [
+                        ft.Text(
+                            f"Welcome to EventSynch, {username}!",
+                            size=24,
+                            weight="bold",
+                            text_align=ft.TextAlign.CENTER
+                        ),
+                        ft.Row(
+                            [
+                                ft.FilledButton(text="Add Event", on_click=lambda e: open_add_event(page, username)),
+                                ft.FilledButton(text="View All Events", on_click=lambda e: open_event_list(page, username))
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                        )
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    spacing=20
+                ),
+                alignment=ft.alignment.center,
+                padding=ft.padding.all(20),
+                expand=True
+            ),
+            ft.Container(
+                content=ft.FilledButton("Logout", on_click=logout),
+                alignment=ft.alignment.center,
+                margin=ft.margin.only(top=30),
+                padding=ft.padding.only(bottom=10)
             )
+        ],
+        expand=True,
+        alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+    )
 
-            # Center-align and expand the scrollable frame
-            canvas.create_window((0, 0), window=scrollable_frame, anchor="n", width=900)
-            canvas.configure(yscrollcommand=scrollbar.set)
 
-            canvas.pack(side="left", fill="both", expand=True)
-            scrollbar.pack(side="right", fill="y")
 
-            def refresh_event_list():
-                for widget in scrollable_frame.winfo_children():
-                    widget.destroy()
 
-                events = get_all_events(username)
-                if not events:
-                    ttk.Label(scrollable_frame, text="No events found.", justify='center').pack(pady=20)
-                else:
-                    for event in events:
-                        # Center the event frame and its content
-                        event_frame = ttk.Frame(scrollable_frame, relief="groove", borderwidth=2)
-                        event_frame.pack(pady=10, padx=100, ipadx=10, fill="x")
+    page.add(dashboard_content)
+    page.update()
 
-                        # Bold the event name and keep the rest regular
-                        event_name_label = tk.Label(
-                            event_frame,
-                            text=f"Event: {event['name']}",
-                            font=("Arial", 12, "bold"),
-                            justify='center',
-                            bg="SystemButtonFace"
-                        )
-                        event_name_label.pack(pady=2)
 
-                        # Display event details in regular font
-                        event_details = tk.Label(
-                            event_frame,
-                            text=f"Date: {event['date']}\nLocation: {event['location']}\nDescription: {event['description']}",
-                            font=("Arial", 12),
-                            justify='center',
-                            bg="SystemButtonFace"
-                        )
-                        event_details.pack(pady=2)
 
-                        # Frame for the Delete and Edit buttons, centered
-                        button_frame = ttk.Frame(event_frame)
-                        button_frame.pack(pady=5)
-                        ttk.Button(button_frame, text="Delete", command=lambda e_id=event['id']: delete_event_action(e_id)).pack(side="left", padx=5)
-                        ttk.Button(button_frame, text="Edit", command=lambda e_data=event: edit_event(e_data)).pack(side="left", padx=5)
 
-            # Centered Back button created only once
-            back_button_frame = ttk.Frame(main_frame)
-            back_button_frame.pack(pady=20, side="bottom")
-            ttk.Button(back_button_frame, text="Back", command=on_close).pack(pady=10, padx=20)
+def open_event_list(page, username):
+    page.controls.clear()
+    page.title = "All Events"
 
-            def delete_event_action(event_id):
-                """Delete event action with confirmation."""
-                if messagebox.askyesno("Delete Confirmation", "Are you sure you want to delete this event?"):
-                    delete_event(event_id)
-                    refresh_event_list()  # Refresh list after deletion
 
-            def edit_event(event_data):
-                """Open the Edit Event window."""
-                edit_window = tk.Toplevel(event_window_open)
-                edit_window.title("Edit Event")
-                edit_window.geometry("400x350")
-                edit_window.resizable(False, False)
 
-                # Event fields with current data
-                ttk.Label(edit_window, text="Event Name", background="SystemButtonFace").pack(pady=5)
-                event_name = ttk.Entry(edit_window)
-                event_name.insert(0, event_data['name'])
-                event_name.pack(pady=5)
 
-                ttk.Label(edit_window, text="Event Date (MM-DD-YYYY)", background="SystemButtonFace").pack(pady=5)
-                event_date = ttk.Entry(edit_window)
-                event_date.insert(0, event_data['date'])
-                event_date.pack(pady=5)
+    events = get_all_events(username)
+   
+    if not events:
+        event_list_content = ft.Text("No events found.", text_align=ft.TextAlign.CENTER)
+    else:
+        event_list_content = ft.Column(
+            controls=[
+                ft.Container(
+                    content=ft.Column(
+                        controls=[
+                            ft.Text(
+                                f"Event: {event['name']}\nDate: {event['date']}\nLocation: {event['location']}\nDescription: {event['description']}",
+                                size=16,
+                                text_align=ft.TextAlign.CENTER
+                            ),
+                            ft.Row(
+                                controls=[
+                                    ft.FilledButton(
+                                        text="Edit",
+                                        on_click=lambda e, event=event: open_edit_event(page, username, event)
+                                    ),
+                                    ft.FilledButton(
+                                        text="Delete",
+                                        on_click=lambda e, event=event: delete_event_confirmation(page, username, event)
+                                    ),
+                                    ft.FilledButton(
+                                        text="Financial Budgeting",
+                                        on_click=lambda e, event=event: open_financial_budgeting_page(page, username, event)
+                                    )
+                                ],
+                                alignment=ft.MainAxisAlignment.CENTER,
+                                spacing=10
+                            )
+                        ],
+                        spacing=10,
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER
+                    ),
+                    padding=ft.padding.all(10),
+                    margin=ft.margin.symmetric(vertical=5),
+                    border=ft.border.all(1, ft.colors.BLACK12)
+                )
+                for event in events
+            ],
+            scroll=ft.ScrollMode.AUTO,
+            alignment=ft.MainAxisAlignment.START
+        )
 
-                ttk.Label(edit_window, text="Location", background="SystemButtonFace").pack(pady=5)
-                event_location = ttk.Entry(edit_window)
-                event_location.insert(0, event_data['location'])
-                event_location.pack(pady=5)
 
-                ttk.Label(edit_window, text="Description", background="SystemButtonFace").pack(pady=5)
-                event_description = ttk.Entry(edit_window)
-                event_description.insert(0, event_data['description'])
-                event_description.pack(pady=5)
 
-                def save_edited_event():
-                    """Save the edited event data."""
-                    updated_event = {
-                        'id': event_data['id'],
-                        'name': event_name.get(),
-                        'date': event_date.get(),
-                        'location': event_location.get(),
-                        'description': event_description.get()
-                    }
-                    if update_event(updated_event):
-                        messagebox.showinfo("Success", "Event updated successfully")
-                        edit_window.destroy()
-                        refresh_event_list()
-                    else:
-                        messagebox.showerror("Error", "Failed to update event")
 
-                def cancel_edit():
-                    """Cancel the edit with confirmation if there are unsaved changes."""
-                    if (event_name.get() != event_data['name'] or
-                        event_date.get() != event_data['date'] or
-                        event_location.get() != event_data['location'] or
-                        event_description.get() != event_data['description']):
-                        confirm = messagebox.askyesno(
-                            "Cancel Confirmation",
-                            "You have unsaved changes. Are you sure you want to cancel? Your changes will not be saved."
-                        )
-                        if not confirm:
-                            return
-                    edit_window.destroy()
+    page.add(
+        ft.Column(
+            controls=[
+                ft.Container(
+                    content=ft.Text("Event List", size=24, weight="bold", text_align=ft.TextAlign.CENTER),
+                    alignment=ft.alignment.center,
+                    padding=ft.padding.all(10)
+                ),
+                ft.Container(
+                    content=event_list_content,
+                    alignment=ft.alignment.center,
+                    padding=ft.padding.all(20),
+                    expand=True
+                ),
+                ft.Container(
+                    content=ft.FilledButton("Back", on_click=lambda e: open_dashboard(page, username)),
+                    alignment=ft.alignment.center,
+                    padding=ft.padding.all(10)
+                )
+            ],
+            expand=True
+        )
+    )
+    page.update()
 
-                # Frame for Save and Cancel buttons
-                button_frame = ttk.Frame(edit_window)
-                button_frame.pack(pady=10)
-                ttk.Button(button_frame, text="Save Changes", command=save_edited_event).pack(side="left", padx=5)
-                ttk.Button(button_frame, text="Cancel", command=cancel_edit).pack(side="left", padx=5)
 
-            refresh_event_list()
 
-    ttk.Button(event_tab, text="View All Events", command=open_event_list_window).pack(pady=10)
 
-    def confirm_logout():
-        if messagebox.askyesno("Logout Confirmation", "Are you sure you want to logout?"):
-            dashboard.destroy()
+def open_add_event(page: ft.Page, username):
+    event_name = ft.TextField(label="Event Name", width=300)
+    event_date = ft.TextField(label="Event Date (MM-DD-YYYY)", width=300)
+    event_location = ft.TextField(label="Location", width=300)
+    event_description = ft.TextField(label="Description", width=300)
 
-    ttk.Button(dashboard, text="Logout", command=confirm_logout).pack(pady=10)
-    dashboard.mainloop()
+
+
+
+    def validate_date_format(date_str):
+        import re
+        pattern = r"^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])-\d{4}$"
+        return re.match(pattern, date_str)
+
+
+
+
+    def save_event(e):
+        if not validate_date_format(event_date.value):
+            page.dialog = ft.AlertDialog(
+                title=ft.Text("Error"),
+                content=ft.Text("Invalid date format. Please use MM-DD-YYYY."),
+                actions=[ft.TextButton("OK", on_click=lambda e: close_dialog(page))],
+                open=True
+            )
+            page.update()
+            return
+
+
+
+
+        add_event(
+            event_name.value,
+            event_date.value,
+            event_location.value,
+            event_description.value,
+            username
+        )
+        page.dialog = ft.AlertDialog(
+            title=ft.Text("Success"),
+            content=ft.Text("Event Added"),
+            actions=[ft.TextButton("OK", on_click=lambda e: close_dialog_and_return(page, username))],
+            open=True
+        )
+        page.update()
+
+
+
+
+    def close_dialog(page):
+        if page.dialog:
+            page.dialog.open = False
+            page.update()
+
+
+
+
+    def close_dialog_and_return(page, username):
+        close_dialog(page)
+        open_dashboard(page, username)
+
+
+
+
+    add_event_content = ft.Column(
+        [
+            event_name,
+            event_date,
+            event_location,
+            event_description,
+            ft.Row(
+                [
+                    ft.FilledButton("Save", on_click=save_event),
+                    ft.FilledButton("Cancel", on_click=lambda e: close_dialog_and_return(page, username))
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                spacing=10
+            )
+        ],
+        alignment=ft.MainAxisAlignment.CENTER,
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+        spacing=15
+    )
+
+
+
+
+    page.dialog = ft.AlertDialog(
+        modal=True,
+        title=ft.Text("Add Event"),
+        content=add_event_content,
+        open=True
+    )
+    page.update()
+
+
+
+
+def open_edit_event(page: ft.Page, username, event):
+    event_name = ft.TextField(label="Event Name", value=event["name"], width=300)
+    event_date = ft.TextField(label="Event Date (MM-DD-YYYY)", value=event["date"], width=300)
+    event_location = ft.TextField(label="Location", value=event["location"], width=300)
+    event_description = ft.TextField(label="Description", value=event["description"], width=300)
+
+
+
+
+    def save_edited_event(e):
+        updated_event = {
+            "id": event["id"],
+            "name": event_name.value,
+            "date": event_date.value,
+            "location": event_location.value,
+            "description": event_description.value
+        }
+        update_event(updated_event)
+        page.dialog = ft.AlertDialog(
+            title=ft.Text("Success"),
+            content=ft.Text("Event Updated Successfully"),
+            actions=[ft.TextButton("OK", on_click=lambda e: close_dialog_and_return(page, username))]
+        )
+        page.dialog.open = True
+        page.update()
+
+
+
+
+    def close_dialog(page):
+        if page.dialog:
+            page.dialog.open = False
+            page.update()
+
+
+
+
+    def close_dialog_and_return(page, username):
+        close_dialog(page)
+        open_event_list(page, username)
+
+
+
+
+    edit_event_content = ft.Column(
+        [
+            event_name,
+            event_date,
+            event_location,
+            event_description,
+            ft.Row(
+                [
+                    ft.FilledButton("Save", on_click=save_edited_event),
+                    ft.FilledButton("Cancel", on_click=lambda e: close_dialog_and_return(page, username))
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                spacing=10
+            )
+        ],
+        alignment=ft.MainAxisAlignment.CENTER,
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+        spacing=15
+    )
+
+
+
+
+    page.dialog = ft.AlertDialog(
+        modal=True,
+        title=ft.Text("Edit Event"),
+        content=edit_event_content,
+        open=True
+    )
+    page.update()
+
+
+
+
+def delete_event_confirmation(page: ft.Page, username, event):
+    def confirm_delete(response):
+        if response == "yes":
+            delete_event(event["id"])
+            page.dialog.open = False
+            page.update()
+            open_event_list(page, username)
+        else:
+            page.dialog.open = False
+            page.update()
+
+
+
+
+    page.dialog = ft.AlertDialog(
+        modal=True,
+        title=ft.Text("Delete Confirmation"),
+        content=ft.Text(f"Are you sure you want to delete the event '{event['name']}'?"),
+        actions=[
+            ft.TextButton("Yes", on_click=lambda e: confirm_delete("yes")),
+            ft.TextButton("No", on_click=lambda e: confirm_delete("no"))
+        ],
+        open=True
+    )
+    page.update()
+
+
+
+
+def open_financial_budgeting_page(page: ft.Page, username, event):
+    page.controls.clear()
+    page.title = f"Financial Budgeting for {event['name']}"
+
+
+
+
+    budget_input = ft.TextField(label="Total Budget (PHP)", width=300)
+    expense_name = ft.TextField(label="Expense Name", width=200)
+    expense_amount = ft.TextField(label="Expense Amount (PHP)", width=150)
+
+
+
+
+    # Load existing data if available
+    event_id = event["id"]
+    expenses = data_store["budget_data"].get(event_id, {"budget": "", "expenses": []})["expenses"]
+    budget_input.value = data_store["budget_data"].get(event_id, {"budget": ""})["budget"]
+
+
+
+
+    def format_currency(amount):
+        return f"₱{amount:,.2f}"
+
+
+
+
+    def add_expense(e):
+        if expense_name.value and expense_amount.value.replace('.', '', 1).isdigit():
+            expenses.append({
+                "name": expense_name.value,
+                "amount": float(expense_amount.value)
+            })
+            refresh_expense_table()
+            expense_name.value = ""
+            expense_amount.value = ""
+            page.update()
+
+
+
+
+    def refresh_expense_table():
+        total_expenses = sum(exp["amount"] for exp in expenses)
+        remaining_budget = float(budget_input.value) - total_expenses if budget_input.value.replace('.', '', 1).isdigit() else 0
+
+
+
+
+        expense_table.controls.clear()
+        for exp in expenses:
+            expense_table.controls.append(ft.Row(
+                [
+                    ft.Text(exp["name"], width=200),
+                    ft.Text(format_currency(exp["amount"]), width=150),
+                    ft.FilledButton("Edit", on_click=lambda e, exp=exp: edit_expense(exp)),
+                    ft.FilledButton("Delete", on_click=lambda e, exp=exp: delete_expense(exp))
+                ],
+                alignment=ft.MainAxisAlignment.CENTER
+            ))
+        total_text.value = f"Total Expenses: {format_currency(total_expenses)}"
+        remaining_text.value = f"Remaining Budget: {format_currency(remaining_budget)}"
+        page.update()
+
+
+
+
+    def edit_expense(exp):
+        expense_name.value = exp["name"]
+        expense_amount.value = str(exp["amount"])
+        expenses.remove(exp)
+        refresh_expense_table()
+        page.update()
+
+
+
+
+    def delete_expense(exp):
+        expenses.remove(exp)
+        refresh_expense_table()
+        page.update()
+
+
+
+
+    def save_budgeting(e):
+        # Save data to the in-memory data store
+        data_store["budget_data"][event_id] = {
+            "budget": budget_input.value,
+            "expenses": expenses
+        }
+        page.dialog = ft.AlertDialog(
+            title=ft.Text("Success"),
+            content=ft.Text("Financial details saved successfully."),
+            actions=[ft.TextButton("OK", on_click=lambda e: close_dialog(page))],
+            open=True
+        )
+        page.update()
+
+
+
+
+    def close_dialog(page):
+        if page.dialog:
+            page.dialog.open = False
+            page.update()
+
+
+
+
+    expense_table = ft.Column()
+    total_text = ft.Text("Total Expenses: ₱0.00")
+    remaining_text = ft.Text("Remaining Budget: ₱0.00")
+
+
+
+
+    refresh_expense_table()  # Initialize the table with current data
+
+
+
+
+    budgeting_content = ft.Column(
+        [
+            ft.Text(f"Financial Budgeting for {event['name']}", size=20, weight="bold"),
+            budget_input,
+            ft.Row(
+                [expense_name, expense_amount, ft.FilledButton("Add Expense", on_click=add_expense)],
+                alignment=ft.MainAxisAlignment.CENTER,
+                spacing=10
+            ),
+            expense_table,
+            total_text,
+            remaining_text,
+            ft.Row(
+                [
+                    ft.FilledButton("Save", on_click=save_budgeting),
+                    ft.FilledButton("Back", on_click=lambda e: open_event_list(page, username))
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                spacing=10
+            )
+        ],
+        alignment=ft.MainAxisAlignment.START,
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+        spacing=15
+    )
+
+
+
+
+    page.add(budgeting_content)
+    page.update()
+
